@@ -12,7 +12,7 @@ assert() {
   ./rvcc "$input" > tmp.s || exit
   # 编译rvcc产生的汇编文件
   # gcc -o tmp tmp.s
-  $RISCV/bin/riscv64-unknown-elf-gcc -static -o tmp tmp.s
+  $RISCV/bin/riscv64-unknown-elf-gcc -static -g -o tmp tmp.s
 
   # 运行生成出来目标文件
   # ./tmp
@@ -35,7 +35,10 @@ assert() {
 # [1] 返回指定数值
 assert 0 0
 assert 42 42
+# [2] +-运算
 assert 21 "5+20-4"
+# [3] 空格
+assert 41 ' 12 + 34 - 5 '
 
 # 如果运行正常未提前退出，程序将显示OK
 echo OK
