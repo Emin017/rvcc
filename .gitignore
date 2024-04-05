@@ -24,3 +24,13 @@ build/
 # IDE相关文件夹
 .cache/
 .vscode/
+.clangd/
+.idea/
+
+# cscope生成的文件
+cscope.in.out
+cscope.out
+cscope.po.out
+
+# ctags生成的文件
+tags
