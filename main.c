@@ -12,6 +12,7 @@ int main(int Argc, char **Argv) {
     // 程序返回值不为0时，表示存在错误
     return 1;
   }
+  char *P = Argv[1];
 
   // 声明一个全局main段，同时也是程序入口段
   printf("  .globl main\n");
@@ -20,8 +21,31 @@ int main(int Argc, char **Argv) {
   // li为addi别名指令，加载一个立即数到寄存器中
   // 传入程序的参数为str类型，因为需要转换为需要int类型，
   // atoi为“ASCII to integer”
-  printf("  li a0, %d\n", atoi(Argv[1]));
+  // 传入&P, 即char**，为了修改P的值
+  // 表达式分解为num (op num)(op num)...
+  printf("  li a0, %ld\n", strtol(P, &P, 10));
+  // 解析（op num）
+  while(*P) {
+	// 解析‘+’
+    if (*P == '+') {
+	  // P++，指针后移
+	  ++P;
+	  // strtol为“string to long”，将字符串转换为长整型,传入&P, 即char**，为了修改P的值, 传入10，表示十进制
+      printf("  addi a0, a0, %ld\n", strtol(P, &P, 10));
+      continue;
+	}
+
+	// 解析‘-’
+    if (*P == '-') {
+	  ++P;
+      printf("  addi a0, a0, -%ld\n", strtol(P, &P, 10));
+      continue;
+	}
+	fprintf(stderr, "unexpected character: '%c'\n", *P);
+	return 1;
+  }
   // ret为jalr x0, x1, 0别名指令，用于返回子程序
+  // 输出最后运算结果
   printf("  ret\n");
 
   return 0;
