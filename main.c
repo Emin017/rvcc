@@ -20,6 +20,31 @@ struct Token {
 	int Len;
 };
 
+static char *CurrentInput;
+
+static void verrorAt(char *Loc, char *Fmt, va_list VA) {
+	// 输出错误信息
+	fprintf(stderr, "%s\n", CurrentInput);
+	int Pos = Loc - CurrentInput;
+	fprintf(stderr, "%*s", Pos, "");
+	fprintf(stderr, "^ ");
+	vfprintf(stderr, Fmt, VA);
+	fprintf(stderr, "\n");
+	exit(1);
+}
+
+static void errorAt(char *Loc, char *Fmt, ...) {
+	va_list VA;
+	va_start(VA, Fmt);
+	verrorAt(Loc, Fmt, VA);
+}
+
+static void errorTok(Token *Tok, char *Fmt, ...) {
+	va_list VA;
+	va_start(VA, Fmt);
+	verrorAt(Tok->Loc, Fmt, VA);
+}
+
 static void error(char *Fmt, ...) {
 // va_list为指向参数的指针
 	va_list VA;
@@ -57,14 +82,15 @@ static Token *newToken(TokenKind Kind, char *Loc, char *End) {
 
 static Token *skip(Token *Tok, char *Str) {
 	if (!equal(Tok, Str))
-		error("expected '%s'", Str);
+		errorTok(Tok, "expected '%s'", Str);
 	return Tok->Next;
 }
 
-static Token *tokenize(char *P) {
+static Token *tokenize() {
 	// 新建一个链表
 	// Head为头指针，Cur为当前指针
 	// Head.Next为第一个元素
+	char *P = CurrentInput;
 	Token Head = {};
 	Token *Cur = &Head;
 
@@ -98,8 +124,7 @@ static Token *tokenize(char *P) {
 			continue;
 		}
 
-
-		error("invalid token: %c", *P);
+		errorAt(P, "invalid token");
 	}
 	// 识别结束，添加EOF结束链表
   // !不使用Head存放节点，因此每次都放在Cur->Next中
@@ -114,13 +139,12 @@ int main(int Argc, char **Argv) {
     // fprintf，格式化文件输出，往文件内写入字符串
     // stderr，异常文件（Linux一切皆文件），用于往屏幕显示异常信息
     // %s，字符串
-    error(stderr, "%s: invalid number of arguments\n", Argv[0]);
     // 程序返回值不为0时，表示存在错误
     return 1;
   }
-  char *P = Argv[1];
+  CurrentInput = Argv[1];
 
-	Token *Tok = tokenize(Argv[1]);
+	Token *Tok = tokenize();
   // 声明一个全局main段，同时也是程序入口段
   printf("  .globl main\n");
   // main段标签
